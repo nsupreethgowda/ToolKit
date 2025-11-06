@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Browser-Only PWA</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <main class="container">
+    <h1>My PWA (Offline-ready)</h1>
+    <p>Status: <span id="status">checking…</span></p>
+
+    <form id="note-form">
+      <input id="note" placeholder="Write a note…" aria-label="Note" />
+      <button type="submit">Save</button>
+    </form>
+
+    <ul id="notes"></ul>
+  </main>
+
+  <script type="module">
+    // Register service worker (installability + offline)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+
+    // Simple online/offline UI
+    const statusEl = document.getElementById('status');
+    function updateStatus() {
+      statusEl.textContent = navigator.onLine ? 'online' : 'offline';
+    }
+    window.addEventListener('online',  updateStatus);
+    window.addEventListener('offline', updateStatus);
+    updateStatus();
+
+    // Tiny IndexedDB wrapper with idb
+    import { openDB } from 'https://unpkg.com/idb?module';
+    const db = await openDB('pwa-notes', 1, {
+      upgrade(db) { db.createObjectStore('notes', { keyPath: 'id', autoIncrement: true }); }
+    });
+
+    async function listNotes() {
+      const tx = db.transaction('notes');
+      const store = tx.objectStore('notes');
+      const all = await store.getAll();
+      const ul = document.getElementById('notes');
+      ul.innerHTML = '';
+      all.sort((a,b)=>b.id-a.id).forEach(n => {
+        const li = document.createElement('li');
+        li.textContent = n.text + (n.pending ? ' (pending sync)' : '');
+        ul.appendChild(li);
+      });
+    }
+
+    document.getElementById('note-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = document.getElementById('note').value.trim();
+      if (!text) return;
+
+      // Save locally immediately (works offline)
+      await db.put('notes', { text, createdAt: Date.now(), pending: !navigator.onLine });
+
+      // Try to sync if online; else mark pending
+      if (navigator.onLine) {
+        try {
+          await fetch('/api/notes', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ text }) });
+          // If success, clear pending flag by re-saving
+          const last = (await db.getAll('notes')).pop();
+          last.pending = false; await db.put('notes', last);
+        } catch { /* keep pending */ }
+      } else {
+        // Ask SW to queue a background sync if available
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          const reg = await navigator.serviceWorker.ready;
+          try { await reg.sync.register('sync-notes'); } catch {}
+        }
+      }
+
+      document.getElementById('note').value = '';
+      listNotes();
+    });
+
+    listNotes();
+  </script>
+</body>
+</html>
