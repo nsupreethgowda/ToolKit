@@ -93,11 +93,16 @@ document.getElementById('copy-btn').addEventListener('click', async () => {
 
 // Reformat button
 document.getElementById('reformat-btn').addEventListener('click', async () => {
-  const { getTranscriptPlainText } = await import('./ui.js');
-  const { reformatText } = await import('./format.js');
+  const [{ getTranscriptPlainText }, { reformatText }, { loadEnabledPacks }] = await Promise.all([
+    import('./ui.js'),
+    import('./format.js'),
+    import('./rule-loader.js')
+  ]);
+
   const input = getTranscriptPlainText();
-  const out = reformatText(input);
-  // Render safely
+  const pack = await loadEnabledPacks();        // merged replacements/post/sectionizers
+  const out   = reformatText(input, pack);      // apply base flags + packs
+
   const box = document.getElementById('formatted');
   box.innerHTML = '';
   out.split(/\n\n/).forEach(p => {
@@ -106,6 +111,7 @@ document.getElementById('reformat-btn').addEventListener('click', async () => {
     box.appendChild(el);
   });
 });
+
 
 // Copy formatted
 document.getElementById('copy-formatted-btn').addEventListener('click', async () => {
