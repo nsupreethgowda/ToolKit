@@ -10,6 +10,18 @@
 - recordedChunks = [];
 + if (!media) media = await import('./audio.js');
 
+try {
+  await media.startPCM(audioStream);
+} catch (err) {
+  setStatus('Audio capture not supported in this browser');
+  isActive = false;
+  btn.classList.remove('active');
+  btn.setAttribute('aria-pressed', 'false');
+  btnLabel.textContent = 'Start Voice Recognition';
+  return;
+}
+
+
    try {
      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
    } catch {
