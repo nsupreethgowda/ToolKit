@@ -1,3 +1,5 @@
+registerSW('./sw.js?v=13');
+
 export function registerSW(url) {
   if (!('serviceWorker' in navigator)) return;
   try {
