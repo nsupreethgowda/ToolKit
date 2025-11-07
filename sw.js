@@ -23,21 +23,30 @@ self.addEventListener('activate', (e) => {
   })());
 });
 
-// Network-first for API (if you add Pages Functions like /api/notes), cache-first for static
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
+
+  // ✅ Let the browser handle cross-origin (Hugging Face/CDNs)
+  if (url.origin !== location.origin) return;
+
+  // Network-first for API
   if (url.pathname.startsWith('/api/')) {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     return;
   }
+
+  // Cache-first for same-origin static assets
   e.respondWith(
-    caches.match(e.request).then(resp => {
+    caches.match(e.request).then((resp) => {
       if (resp) return resp;
-      return fetch(e.request).then(net => {
-        const copy = net.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy));
-        return net;
-      }).catch(() => caches.match('/index.html'));
+      return fetch(e.request)
+        .then((net) => {
+          const copy = net.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          return net;
+        })
+        .catch(() => caches.match('/index.html'));
     })
   );
 });
+
