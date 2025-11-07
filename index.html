@@ -36,11 +36,35 @@
       font-size: .95rem; padding: .75rem; border-radius: .5rem;
     }
     .muted { color:#6b7280; font-size:.9rem; }
+
+    /* Spinner */
+    .spinner-wrap {
+      display: inline-flex; align-items: center; gap: .6rem;
+      margin-top: .75rem; min-height: 2rem; /* reserve space to avoid layout shift */
+    }
+    .spinner {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 3px solid #d1d5db; border-top-color: #0f766e;
+      animation: spin 1s linear infinite; display: none;
+    }
+    .spinner.show { display:inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Floating Force Reload button */
+    .reload-btn {
+      position: fixed; top: 1rem; right: 1rem;
+      font-size: .85rem; padding: .4rem .7rem; border-radius: .6rem;
+      border: 1px solid #d1d5db; background: #ffffffcc; backdrop-filter: blur(6px);
+      cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+    .reload-btn:disabled { opacity: .6; cursor: not-allowed; }
   </style>
 </head>
 
 <body>
   <main class="container">
+    <button id="force-reload" class="reload-btn" title="Clear caches & service worker, then reload">Force Reload</button>
+
     <h1>NeuroToolkit</h1>
 
     <button id="voice-btn" class="voice-btn" aria-pressed="false">
@@ -52,13 +76,18 @@
 
     <div id="voice-status" class="voice-status">Idle</div>
 
+    <div class="spinner-wrap" aria-live="polite">
+      <div id="spinner" class="spinner" aria-hidden="true"></div>
+      <span id="spinner-text" class="muted"></span>
+    </div>
+
     <div class="section">
       <div class="row">
         <h2>Transcript</h2>
         <button id="copy-btn" class="copy-btn" title="Copy to clipboard">Copy</button>
       </div>
       <textarea id="transcript" placeholder="Your transcript will appear here..." readonly></textarea>
-      <p class="muted">Tip: First run downloads the model for offline reuse. Subsequent runs are fast.</p>
+      <p class="muted">Tip: First run downloads the model for offline reuse. Subsequent runs are faster.</p>
     </div>
 
     <hr style="margin: 2rem 0;" />
@@ -74,7 +103,7 @@
 
     // --- Register SW (PWA) ---
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=5');
+      navigator.serviceWorker.register('./sw.js?v=6');
     }
 
     // --- UI elements ---
@@ -83,22 +112,37 @@
     const statusEl = document.getElementById('voice-status');
     const transcriptEl = document.getElementById('transcript');
     const copyBtn = document.getElementById('copy-btn');
+    const spinner = document.getElementById('spinner');
+    const spinnerText = document.getElementById('spinner-text');
+    const forceReloadBtn = document.getElementById('force-reload');
 
     let isActive = false;
     let mediaRecorder;
     let recordedChunks = [];
     let audioStream;
-    let asrPipeline = null; // Whisper pipeline (loaded lazily)
+    let asrPipeline = null; // Whisper pipeline (lazy-loaded)
 
     function setStatus(text) { statusEl.textContent = text; }
+    function showSpinner(text='') {
+      spinner.classList.add('show');
+      spinner.setAttribute('aria-hidden', 'false');
+      spinnerText.textContent = text;
+    }
+    function hideSpinner() {
+      spinner.classList.remove('show');
+      spinner.setAttribute('aria-hidden', 'true');
+      spinnerText.textContent = '';
+    }
 
     // Load Whisper tiny in-browser on first use
     async function ensureASR() {
       if (asrPipeline) return asrPipeline;
-      setStatus('Loading Whisper model… (first time may take a minute)');
+      showSpinner('Loading Whisper model… (first time may take a minute)');
+      setStatus('Loading model…');
       const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers/dist/transformers.min.js');
-      // tiny.en is smallest + fast; change model id if you need multilingual (Xenova/whisper-tiny)
       asrPipeline = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', { quantized: true });
+      hideSpinner();
+      setStatus('Idle');
       return asrPipeline;
     }
 
@@ -127,15 +171,16 @@
         mediaRecorder.onstop = () => res();
         mediaRecorder.stop();
       });
-      // Stop tracks
       if (audioStream) audioStream.getTracks().forEach(t => t.stop());
+
       btn.classList.remove('active');
       btn.setAttribute('aria-pressed', 'false');
       btnLabel.textContent = 'Start Voice Recognition';
+
+      showSpinner('Processing audio…');
       setStatus('Processing audio…');
 
       const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-      // Decode -> resample to 16k mono -> Float32Array for Whisper
       const audioData = await blob.arrayBuffer();
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const decoded = await ctx.decodeAudioData(audioData);
@@ -151,6 +196,7 @@
       });
 
       transcriptEl.value = (result?.text || '').trim();
+      hideSpinner();
       setStatus('Idle');
     }
 
@@ -170,7 +216,6 @@
       const ratio = originalRate / targetRate;
       const newLen = Math.round(float32.length / ratio);
       const out = new Float32Array(newLen);
-      let pos = 0;
       for (let i = 0; i < newLen; i++) {
         const idx = i * ratio;
         const i0 = Math.floor(idx);
@@ -184,7 +229,7 @@
     function toggleVoice() {
       isActive = !isActive;
       if (isActive) startRecording().catch(() => { isActive = false; });
-      else stopRecording().catch(() => { setStatus('Idle'); });
+      else stopRecording().catch(() => { hideSpinner(); setStatus('Idle'); });
     }
 
     btn.addEventListener('click', toggleVoice);
@@ -195,12 +240,33 @@
         copyBtn.textContent = 'Copied';
         setTimeout(() => (copyBtn.textContent = 'Copy'), 1000);
       } catch {
-        // fallback: select + copy
         transcriptEl.select();
         document.execCommand('copy');
         copyBtn.textContent = 'Copied';
         setTimeout(() => (copyBtn.textContent = 'Copy'), 1000);
       }
+    });
+
+    // Force Reload: clear SW + caches, then reload with cache-buster
+    forceReloadBtn.addEventListener('click', async () => {
+      forceReloadBtn.disabled = true;
+      forceReloadBtn.textContent = 'Clearing…';
+      try {
+        // Unregister all service workers
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(r => r.unregister()));
+        }
+        // Delete all caches
+        if ('caches' in window) {
+          const names = await caches.keys();
+          await Promise.all(names.map(n => caches.delete(n)));
+        }
+      } catch {}
+      // Reload with a cache-busting query param
+      const url = new URL(window.location.href);
+      url.searchParams.set('force', Date.now());
+      window.location.replace(url.toString());
     });
   </script>
 </body>
