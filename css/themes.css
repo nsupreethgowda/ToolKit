@@ -1,0 +1,37 @@
+:root {
+  --brand: #0f766e;
+  --ok: #16a34a;
+  --warn: #dc2626;
+
+  /* Light default: dark text on light background */
+  --bg: #ffffff;
+  --text: #0b1220;
+  --surface: #f9fafb;
+  --card: #ffffff;
+  --border: #d1d5db;
+  --glass: #ffffffcc;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+  background: var(--bg);
+  color: var(--text);
+}
+
+html[data-theme="dark"] {
+  /* Dark: light text on dark background */
+  --bg: #0b1220;
+  --text: #e5e7eb;
+  --surface: #111827;
+  --card: #0f172a;
+  --border: #374151;
+  --glass: #111827cc;
+
+  color-scheme: dark;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Utility */
+.muted { color: #6b7280; }
+html[data-theme="dark"] .muted { color: #9aa4b2; }
