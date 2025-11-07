@@ -52,6 +52,7 @@
     .transcript p { margin:0 0 .8rem 0; line-height:1.55; }
     .copy-btn { font-size:.85rem; padding:.35rem .6rem; border-radius:.5rem; border:1px solid var(--border); background: var(--surface); }
 
+    .hamburger { min-width: 64px; font-weight: 600; }
     .hamburger {
       position:fixed; left:1rem; z-index:1000; width:42px; height:42px;
       display:inline-flex; align-items:center; justify-content:center;
@@ -71,11 +72,9 @@
 
   <main class="container">
     <!-- Hamburger -->
-    <button id="hamburger" class="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"></path>
-      </svg>
-    </button>
+<button id="hamburger" class="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+  Menu
+</button>
 
     <!-- Menu root (menu.js will render the panel here) -->
     <div id="menu-root"></div>
