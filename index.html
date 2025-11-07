@@ -110,6 +110,18 @@
       </div>
       <p class="muted">First run downloads the model for offline reuse. Subsequent runs are faster.</p>
     </div>
+<!-- Context-aware formatted output -->
+<div class="section">
+  <div class="row">
+    <h2>Formatted Output</h2>
+    <div>
+      <button id="reformat-btn" class="copy-btn" title="Apply context rules">Reformat</button>
+      <button id="copy-formatted-btn" class="copy-btn" title="Copy formatted output">Copy</button>
+    </div>
+  </div>
+  <div id="formatted" class="transcript" aria-live="polite"></div>
+  <p class="muted">Uses rules from <a href="rules.html">Context Rules</a>. Fully client-side.</p>
+</div>
 
     <hr style="margin: 2rem 0;" />
     <p>Status: <span id="net-status">checking…</span></p>
