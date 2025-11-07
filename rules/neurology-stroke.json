@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "replacements": [
+    { "pattern": "\\bAFib\\b", "flags": "gi", "replacement": "atrial fibrillation" },
+    { "pattern": "\\bTIA\\b", "flags": "g", "replacement": "transient ischemic attack" },
+    { "pattern": "\\bLKW\\b", "flags": "g", "replacement": "last known well" },
+    { "pattern": "\\bIVT\\b", "flags": "g", "replacement": "intravenous thrombolysis" },
+    { "pattern": "\\bMT\\b",  "flags": "g", "replacement": "mechanical thrombectomy" },
+    { "pattern": "\\bNIHSS\\b", "flags": "g", "replacement": "NIH Stroke Scale" },
+    { "pattern": "\\bASPECTS\\b", "flags": "g", "replacement": "Alberta Stroke Program Early CT Score" },
+    { "pattern": "\\bTICI\\b", "flags": "g", "replacement": "Thrombolysis in Cerebral Infarction" }
+  ],
+  "post": [
+    { "op": "smartPunct" },
+    { "op": "removeFillers" },
+    { "op": "bulletize", "minItems": 3 }
+  ],
+  "sectionizers": [
+    {
+      "name": "StrokeNote",
+      "sections": [
+        { "title": "Presentation",   "cues": ["lkw", "last known well", "onset", "presentation", "symptoms"] },
+        { "title": "Vitals & Exam",  "cues": ["vitals", "nihss", "exam", "neurologic exam", "deficits"] },
+        { "title": "Imaging",        "cues": ["ct", "angiography", "mri", "flair", "tici", "aspects", "occlusion"] },
+        { "title": "Treatment",      "cues": ["ivt", "tpa", "tenecteplase", "mt", "thrombectomy", "antiplatelet", "anticoagulation"] },
+        { "title": "Plan",           "cues": ["plan", "recommend", "admit", "neuro icu", "follow up"] }
+      ]
+    }
+  ]
+}
