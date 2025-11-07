@@ -2,7 +2,6 @@ import { setThemeFromStorage, toggleThemeLabel, toggleTheme } from './ui.js';
 
 export function initMenu() {
   const root = document.documentElement;
-  // initial theme
   setThemeFromStorage(root);
 
   const mount = document.getElementById('menu-root');
@@ -23,7 +22,6 @@ export function initMenu() {
     </div>
   `;
 
-  // Hook up hamburger
   const hamburger = document.getElementById('hamburger');
   const menu = document.getElementById('menu');
 
@@ -43,7 +41,6 @@ export function initMenu() {
     if (open) document.addEventListener('click', closeMenuOnOutside);
   });
 
-  // Theme toggle
   const btn = document.getElementById('toggle-theme');
   toggleThemeLabel(btn, root);
   btn.addEventListener('click', () => toggleTheme(btn, root));
