@@ -86,3 +86,11 @@ document.getElementById('copy-btn').addEventListener('click', async () => {
     document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
   }
 });
+
+// Filter out benign Cloudflare hub.js JSON parse noise
+window.addEventListener('error', (e) => {
+  if (e.filename && e.filename.includes('hub.js')) {
+    e.preventDefault();
+    return false;
+  }
+});
