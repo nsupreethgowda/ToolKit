@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "replacements": [
+    { "pattern": "\\bBP\\b", "flags": "g", "replacement": "blood pressure" },
+    { "pattern": "\\bHR\\b", "flags": "g", "replacement": "heart rate" },
+    { "pattern": "\\bRR\\b", "flags": "g", "replacement": "respiratory rate" }
+  ],
+  "post": [
+    { "op": "smartPunct" },
+    { "op": "removeFillers" },
+    { "op": "numbersAsDigits", "max": 10 },
+    { "op": "bulletize", "minItems": 3 }
+  ],
+  "sectionizers": [
+    {
+      "name": "SOAP",
+      "sections": [
+        { "title": "Subjective", "cues": ["patient reports", "history", "complains", "states", "denies"] },
+        { "title": "Objective",  "cues": ["vitals", "exam", "neurologic exam", "findings", "imaging", "labs"] },
+        { "title": "Assessment", "cues": ["assessment", "impression", "diagnosis"] },
+        { "title": "Plan",       "cues": ["plan", "recommend", "treat", "start", "continue", "follow up"] }
+      ]
+    }
+  ]
+}
