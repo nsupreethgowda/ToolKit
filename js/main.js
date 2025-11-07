@@ -1,64 +1,88 @@
-- let media = null;  // audio helpers
-+ let media = null;  // audio helpers (worklet)
+import { registerSW, attachForceReload } from './pwa.js';
+import { initMenu } from './menu.js';
+import { setStatus, showSpinner, hideSpinner, renderTranscript, timer } from './ui.js';
 
-- let recordedChunks = [];
-- let audioStream = null;
-+ let audioStream = null;
+registerSW('./sw.js?v=12'); // bump this when you ship major changes
+attachForceReload();
+initMenu();
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js?v=10');
-}
+// Online/offline
+const netEl = document.getElementById('net-status');
+const updateNet = () => netEl.textContent = navigator.onLine ? 'online' : 'offline';
+addEventListener('online', updateNet); addEventListener('offline', updateNet); updateNet();
 
- // on Start (inside the click handler)
-- if (!media) media = await import('./audio.js');
-- recordedChunks = [];
-+ if (!media) media = await import('./audio.js');
+// Voice UI
+const btn = document.getElementById('voice-btn');
+const btnLabel = document.getElementById('voice-btn-label');
 
-try {
-  await media.startPCM(audioStream);
-} catch (err) {
-  setStatus('Audio capture not supported in this browser');
-  isActive = false;
-  btn.classList.remove('active');
-  btn.setAttribute('aria-pressed', 'false');
-  btnLabel.textContent = 'Start Voice Recognition';
-  return;
-}
+let media = null;   // audio worklet helpers
+let asr = null;     // whisper loader/transcribe
+let isActive = false;
+let audioStream = null;
 
+btn.addEventListener('click', async () => {
+  isActive = !isActive;
+  if (isActive) {
+    if (!media) media = await import('./audio.js');
+    try {
+      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setStatus('Microphone permission denied');
+      isActive = false;
+      return;
+    }
+    // Start PCM capture
+    try {
+      await media.startPCM(audioStream);
+    } catch (err) {
+      console.error(err);
+      setStatus('Audio capture not supported in this browser');
+      isActive = false;
+      return;
+    }
 
-   try {
-     audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-   } catch {
-     setStatus('Microphone permission denied');
-     isActive = false;
-     return;
-   }
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    btnLabel.textContent = 'Stop Voice Recognition';
+    setStatus('Voice recognition active');
+    timer.start();
 
-- const rec = media.startRecorder(audioStream, recordedChunks);
-+ await media.startPCM(audioStream);
+  } else {
+    const pcm16k = await media.stopPCM();
+    btn.classList.remove('active');
+    btn.setAttribute('aria-pressed', 'false');
+    btnLabel.textContent = 'Start Voice Recognition';
+    timer.stop();
 
- // on Stop (inside the click handler)
-- await media?.stopRecorder();
-- audioStream?.getTracks().forEach(t => t.stop());
-+ const pcm16k = await media.stopPCM();
+    showSpinner('Processing audio…');
+    setStatus('Processing audio…');
 
-   btn.classList.remove('active');
-   btn.setAttribute('aria-pressed', 'false');
-   btnLabel.textContent = 'Start Voice Recognition';
-   timer.stop();
+    try {
+      showSpinner('Transcribing…');
+      if (!asr) asr = await import('./asr.js');
+      const text = await asr.transcribe(pcm16k);
+      renderTranscript(text);
+    } catch (e) {
+      console.error(e);
+      renderTranscript('[Transcription failed]');
+    } finally {
+      hideSpinner();
+      setStatus('Idle');
+    }
+  }
+});
 
-   showSpinner('Processing audio…');
-   setStatus('Processing audio…');
-
-   try {
--    // Decode + resample to 16k mono
--    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
--    const audioData = await blob.arrayBuffer();
--    const decoded = await media.decodeAudio(audioData);
--    const mono = media.toMono(decoded);
--    const pcm16k = media.resampleFloat32(mono, decoded.sampleRate, 16000);
-
-     showSpinner('Transcribing…');
-     if (!asr) asr = await import('./asr.js');
-     const text = await asr.transcribe(pcm16k);  // returns string
-     renderTranscript(text);
+// Copy transcript
+document.getElementById('copy-btn').addEventListener('click', async () => {
+  const area = document.getElementById('transcript');
+  const text = Array.from(area.querySelectorAll('p')).map(p => p.textContent).join('\n\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    const c = document.getElementById('copy-btn');
+    c.textContent = 'Copied';
+    setTimeout(() => (c.textContent = 'Copy'), 1000);
+  } catch {
+    const ta = document.createElement('textarea'); ta.value = text;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  }
+});
