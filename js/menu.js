@@ -20,6 +20,12 @@ export function initMenu() {
         <button id="force-reload" class="menu-btn" role="menuitem" style="font-size:.9rem;padding:.35rem .6rem;border-radius:.5rem;border:1px solid var(--border);background:var(--surface);">Force reload</button>
       </div>
     </div>
+<div class="item" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.5rem;">
+  <span>Context Rules</span>
+  <a href="rules.html" class="menu-btn" role="menuitem" style="text-decoration:none;display:inline-block;text-align:center;">Open</a>
+</div>
+<hr style="margin:.4rem 0;border-color:var(--border)"/>
+
   `;
 
   const hamburger = document.getElementById('hamburger');
