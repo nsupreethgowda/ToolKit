@@ -1,13 +1,13 @@
-registerSW('./sw.js?v=10');
-
 export function registerSW(url) {
-  if ('serviceWorker' in navigator) {
+  if (!('serviceWorker' in navigator)) return;
+  try {
     navigator.serviceWorker.register(url);
+  } catch (e) {
+    console.warn('SW registration failed:', e);
   }
 }
 
 export function attachForceReload() {
-  // The button lives inside the slideout menu; wait until menu renders
   document.addEventListener('click', (e) => {
     if (e.target && e.target.id === 'force-reload') forceReload();
   });
