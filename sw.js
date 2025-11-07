@@ -1,5 +1,5 @@
 // Robust SW with explicit version to invalidate old caches
-const CACHE = 'app-cache-v14';
+const CACHE = 'app-cache-v15';
 const OFFLINE_URLS = [
   '/', '/index.html', '/manifest.webmanifest',
   '/css/themes.css', '/js/main.js', '/js/ui.js', '/js/pwa.js', '/js/menu.js',
