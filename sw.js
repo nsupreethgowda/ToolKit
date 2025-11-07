@@ -1,5 +1,5 @@
 // Basic offline cache + background sync hook
-const CACHE = 'app-cache-v1';
+const CACHE = 'app-cache-v3';
 const OFFLINE_URLS = ['/', '/index.html', '/manifest.webmanifest', 'https://unpkg.com/@picocss/pico@2/css/pico.min.css'];
 
 self.addEventListener('install', (e) => {
