@@ -3,76 +3,86 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My Browser-Only PWA</title>
+  <title>NeuroToolkit</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0f766e">
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css">
-  <!-- Favicon -->
-<link rel="icon" type="image/x-icon" href="icons/favicon.ico">
 
-<!-- PNG icons for browsers -->
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
-
-<!-- Apple touch icon (for iOS home screen) -->
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-
-<!-- Web App Manifest -->
-<link rel="manifest" href="manifest.webmanifest">
-
-<!-- Theme color for browser UI -->
-<meta name="theme-color" content="#0f766e">
   <style>
-    .voice-wrap { display:flex; align-items:center; gap:.75rem; }
+    body {
+      text-align: center;
+      margin-top: 10vh;
+    }
+
+    h1 {
+      margin-bottom: 2rem;
+      font-size: 2.5rem;
+      color: #0f766e;
+    }
+
     .voice-btn {
-      display:inline-flex; align-items:center; gap:.5rem;
-      border:none; border-radius:9999px; padding:.65rem 1rem;
-      font-weight:600; cursor:pointer; color:#fff;
-      background:#16a34a; /* green */
-      transition:background .15s ease-in-out, transform .05s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 9999px;
+      padding: 1.25rem 2rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      color: #fff;
+      background: #16a34a; /* green */
+      transition: background 0.2s ease, transform 0.1s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
-    .voice-btn:active { transform: translateY(1px); }
-    .voice-btn.active { background:#dc2626; } /* red */
-    .voice-status { font-weight:600; }
-    .voice-hint { color:#6b7280; font-size:.9rem; }
-    .sr-only {
-      position:absolute !important; height:1px; width:1px; overflow:hidden;
-      clip:rect(1px, 1px, 1px, 1px); white-space:nowrap; border:0; padding:0; margin:-1px;
+
+    .voice-btn:active {
+      transform: translateY(1px);
     }
-    .icon { width:1.1rem; height:1.1rem; }
+
+    .voice-btn.active {
+      background: #dc2626; /* red */
+    }
+
+    .icon {
+      width: 2rem;
+      height: 2rem;
+      margin-right: 0.75rem;
+    }
+
+    .voice-status {
+      margin-top: 1.5rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    #net-status {
+      font-weight: 500;
+    }
   </style>
 </head>
+
 <body>
   <main class="container">
-    <h1>My PWA</h1>
+    <h1>NeuroToolkit</h1>
 
-    <!-- Voice recognition control -->
-    <section aria-labelledby="voice-title">
-      <h2 id="voice-title">Voice recognition</h2>
-      <div class="voice-wrap">
-        <button id="voice-btn" class="voice-btn" aria-pressed="false" aria-describedby="voice-hint">
-          <!-- mic icon (inline SVG) -->
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93V21h2v-3.07A7 7 0 0 0 19 11h-2z"/>
-          </svg>
-          <span id="voice-btn-label">Start voice recognition</span>
-        </button>
-        <span id="voice-status" class="voice-status">Idle</span>
-      </div>
-      <p id="voice-hint" class="voice-hint">
-        Click the button to toggle voice recognition. The button turns green (off) or red (on).
-      </p>
-      <p class="sr-only" id="voice-live" aria-live="polite"></p>
-    </section>
+    <button id="voice-btn" class="voice-btn" aria-pressed="false">
+      <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.93V21h2v-3.07A7 7 0 0 0 19 11h-2z"/>
+      </svg>
+      <span id="voice-btn-label">Start Voice Recognition</span>
+    </button>
 
-    <hr />
+    <div id="voice-status" class="voice-status">Idle</div>
 
-    <!-- (Optional) Your existing content can stay below -->
+    <hr style="margin: 3rem 0;" />
+
     <p>Status: <span id="net-status">checking…</span></p>
   </main>
 
   <script type="module">
-    // --- Online/offline indicator (optional; keeps your original behavior) ---
+    // --- Online/offline indicator ---
     const netEl = document.getElementById('net-status');
     function updateNet() { netEl.textContent = navigator.onLine ? 'online' : 'offline'; }
     window.addEventListener('online', updateNet);
@@ -81,48 +91,32 @@
 
     // --- Register SW (PWA) ---
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js?v=3');
+      navigator.serviceWorker.register('./sw.js?v=4');
     }
 
-    // --- Voice button logic ---
+    // --- Voice recognition logic ---
     const btn = document.getElementById('voice-btn');
     const btnLabel = document.getElementById('voice-btn-label');
     const statusEl = document.getElementById('voice-status');
-    const liveEl = document.getElementById('voice-live');
 
-    // Speech APIs (progressive enhancement)
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
     if (recognition) {
       recognition.continuous = true;
       recognition.interimResults = false;
       recognition.lang = navigator.language || 'en-US';
       recognition.onstart = () => setStatus('Voice recognition active');
       recognition.onend = () => {
-        // If user turned it off, don't auto-restart; otherwise browsers sometimes end on their own.
-        if (isActive) return; // do nothing (we stopped it)
+        if (!isActive) setStatus('Idle');
       };
-      recognition.onerror = () => { /* ignore for now; UI still toggles */ };
-      recognition.onresult = (event) => {
-        // You can read transcripts here if you want:
-        // const last = event.results[event.results.length - 1][0].transcript;
-        // console.log('Heard:', last);
-      };
+      recognition.onerror = () => {};
     }
 
     let isActive = false;
 
-    function speak(text) {
-      if (!('speechSynthesis' in window)) return;
-      try {
-        const u = new SpeechSynthesisUtterance(text);
-        window.speechSynthesis.speak(u);
-      } catch {}
-    }
-
     function setStatus(text) {
       statusEl.textContent = text;
-      liveEl.textContent = text; // for screen readers
     }
 
     function toggleVoice() {
@@ -130,14 +124,13 @@
       btn.classList.toggle('active', isActive);
       btn.setAttribute('aria-pressed', String(isActive));
       if (isActive) {
-        btnLabel.textContent = 'Stop voice recognition';
+        btnLabel.textContent = 'Stop Voice Recognition';
         setStatus('Voice recognition active');
-        speak('Voice recognition active');
         if (recognition) {
           try { recognition.start(); } catch {}
         }
       } else {
-        btnLabel.textContent = 'Start voice recognition';
+        btnLabel.textContent = 'Start Voice Recognition';
         setStatus('Idle');
         if (recognition) {
           try { recognition.stop(); } catch {}
