@@ -78,3 +78,58 @@ function update() {
   const ss = String(s % 60).padStart(2, '0');
   timerTextEl().textContent = `${mm}:${ss}`;
 }
+// --- existing imports / code above stays ---
+
+// Transcript buffer (kept in-memory and reflected in the DOM)
+const MAX_CHARS = 10000;
+let transcriptBuffer = ''; // running text with paragraph breaks `\n\n`
+
+export function appendTranscript(newText) {
+  if (!newText) return;
+  // Normalize whitespace & split into sentences -> paragraphs (3 per para)
+  const sentences = newText
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(/(?<=[.!?])\s+/)
+    .filter(Boolean);
+
+  const groupSize = 3;
+  const paras = [];
+  for (let i = 0; i < sentences.length; i += groupSize) {
+    paras.push(sentences.slice(i, i + groupSize).join(' '));
+  }
+
+  // Update buffer: append with double newline separators
+  const added = paras.join('\n\n');
+  transcriptBuffer = transcriptBuffer
+    ? `${transcriptBuffer}\n\n${added}`
+    : added;
+
+  // Enforce 10k char limit by trimming oldest content
+  if (transcriptBuffer.length > MAX_CHARS) {
+    transcriptBuffer = transcriptBuffer.slice(transcriptBuffer.length - MAX_CHARS);
+    // avoid starting mid-word: trim to next paragraph boundary if present
+    const cut = transcriptBuffer.indexOf('\n\n');
+    if (cut > 0) transcriptBuffer = transcriptBuffer.slice(cut + 2);
+  }
+
+  // Reflect to DOM
+  const target = document.getElementById('transcript');
+  target.innerHTML = '';
+  transcriptBuffer.split(/\n\n/).forEach(pText => {
+    const p = document.createElement('p');
+    p.textContent = pText;
+    target.appendChild(p);
+  });
+}
+
+// Keep for compatibility (renders fresh text replacing everything)
+export function renderTranscript(text) {
+  transcriptBuffer = '';
+  appendTranscript(text);
+}
+
+// Expose a plain-text getter for the Copy button
+export function getTranscriptPlainText() {
+  return transcriptBuffer;
+}
