@@ -1,11 +1,35 @@
-// Robust SW with explicit version to invalidate old caches
-const CACHE = 'app-cache-v18';
+// sw.js
+// Navigation-aware SW so /rules.html and /calculators.html load correctly.
+// Also pre-caches key same-origin assets. Skips cross-origin (Whisper/CDNs).
+
+const CACHE = 'app-cache-v20';
+
 const OFFLINE_URLS = [
-  '/', '/index.html', '/rules.html', '/calculators.html',
+  '/', '/index.html',
+  '/rules.html',
+  '/calculators.html',
+
+  // CSS
   '/css/themes.css',
-  '/js/main.js','/js/ui.js','/js/pwa.js','/js/menu.js',
-  '/js/format.js','/js/format-flags.js','/js/rule-loader.js','/js/calculators.js',
-  '/rules/index.json','/rules/general-soap.json','/rules/neurology-stroke.json',
+
+  // JS (same-origin only)
+  '/js/main.js',
+  '/js/pwa.js',
+  '/js/menu.js',
+  '/js/ui.js',
+  '/js/audio.js',
+  '/js/asr.js',
+  '/js/recorder-worklet.js',
+  '/js/format.js',
+  '/js/format-flags.js',
+  '/js/rule-loader.js',
+  '/js/rules.js',
+  '/js/calculators.js',
+
+  // Rules registry and packs (same-origin)
+  '/rules/index.json',
+  '/rules/general-soap.json',
+  '/rules/neurology-stroke.json',
   '/rules/parsers/nihss.js'
 ];
 
@@ -28,27 +52,39 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // ✅ Let the browser handle cross-origin (Hugging Face/CDNs)
+  // ✅ Do not intercept cross-origin (CDNs/HuggingFace/etc.)
   if (url.origin !== location.origin) return;
 
-  // Network-first for API
-  if (url.pathname.startsWith('/api/')) {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  // ✅ Treat real navigations as page requests (rules.html, calculators.html, etc.)
+  if (e.request.mode === 'navigate') {
+    e.respondWith((async () => {
+      // 1) Cache first (fast offline)
+      const cached = await caches.match(e.request);
+      if (cached) return cached;
+
+      // 2) Network, then cache
+      try {
+        const resp = await fetch(e.request);
+        const copy = resp.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy));
+        return resp;
+      } catch {
+        // 3) App shell fallback
+        return caches.match('/index.html');
+      }
+    })());
     return;
   }
 
-  // Cache-first for same-origin static assets
+  // ✅ Static assets: cache-first with background fill
   e.respondWith(
-    caches.match(e.request).then((resp) => {
+    caches.match(e.request).then(resp => {
       if (resp) return resp;
-      return fetch(e.request)
-        .then((net) => {
-          const copy = net.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy));
-          return net;
-        })
-        .catch(() => caches.match('/index.html'));
+      return fetch(e.request).then(net => {
+        const copy = net.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy));
+        return net;
+      }).catch(() => caches.match('/index.html'));
     })
   );
 });
-
