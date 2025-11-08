@@ -1,9 +1,8 @@
-registerSW('./sw.js?v=13');
-
+// js/pwa.js
 export function registerSW(url) {
   if (!('serviceWorker' in navigator)) return;
   try {
-    navigator.serviceWorker.register(url);
+    navigator.serviceWorker.register(url); // pass versioned URL from main.js
   } catch (e) {
     console.warn('SW registration failed:', e);
   }
