@@ -2,7 +2,7 @@ import { registerSW, attachForceReload } from './pwa.js';
 import { initMenu } from './menu.js';
 import {  setStatus, showSpinner, hideSpinner,  appendTranscript, getTranscriptPlainText, timer} from './ui.js';
 
-registerSW('./sw.js?v=20');  // ⬅️ bump this when SW changes
+registerSW('./sw.js?v=21');  // ⬅️ bump this when SW changes
 attachForceReload();
 initMenu();
 
