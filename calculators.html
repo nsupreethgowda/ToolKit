@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NeuroToolkit — Manual Calculators</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <style>
+    main { max-width: 960px; margin: 4vh auto; padding: 1rem; }
+    .calc-card { border:1px solid var(--border); border-radius:12px; padding:1rem; background:var(--card); margin-bottom:1rem; }
+    .grid { display:grid; grid-template-columns: 1fr; gap:.75rem; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .row { display:flex; align-items:center; justify-content:space-between; gap:.75rem; }
+    .outbox { white-space:pre-wrap; border:1px solid var(--border); border-radius:.5rem; padding:.75rem; background:var(--surface); }
+    .pill { font-weight:600; padding:.25rem .5rem; border-radius:9999px; border:1px solid var(--border); background:var(--surface); }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <a href="index.html" class="back">← Back to app</a>
+    <h1>Manual Calculators</h1>
+    <p class="muted">Select a calculator, pick options, and export formatted text (and JSON when available). Calculators come from your rule/parser modules.</p>
+
+    <div id="calc-list"></div>
+
+    <hr />
+    <div class="row">
+      <button id="export-text" class="copy-btn">Export Text</button>
+      <button id="export-json" class="copy-btn">Export JSON</button>
+      <span id="status" class="pill">Idle</span>
+    </div>
+    <div id="output" class="outbox" style="margin-top:.75rem;"></div>
+  </main>
+
+  <script type="module" src="js/calculators.js"></script>
+</body>
+</html>
