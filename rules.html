@@ -8,8 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0f766e">
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@2/css/pico.min.css">
-  <link rel="stylesheet" href="css/themes.css">
-
+  <link rel="stylesheet" href="./css/themes.css">
   <style>
     main { max-width: 820px; margin: 4vh auto; padding: 1rem; }
     .group { border:1px solid var(--border); border-radius:12px; padding:1rem; margin-bottom:1rem; background: var(--card); }
@@ -18,10 +17,9 @@
     a.back { display:inline-block; margin-bottom:1rem; }
   </style>
 </head>
-
 <body>
   <main class="container">
-    <a href="index.html" class="back">← Back to app</a>
+    <a href="./index.html" class="back">← Back to app</a>
     <h1>Context-Aware Processing Rules</h1>
     <p class="muted">These settings are saved locally (in your browser). The “Reformat” button on the main page uses them.</p>
 
@@ -38,20 +36,22 @@
 
     <article class="group">
       <h3>Clinical/Neuro helpers</h3>
-      <div class="row"><label for="expandAbbrev">Expand common abbreviations (e.g., NIHSS → NIH Stroke Scale)</label><input id="expandAbbrev" type="checkbox"></div>
-      <div class="row"><label for="sectionizeSOAP">Sectionize into SOAP (Subjective/Objective/Assessment/Plan)</label><input id="sectionizeSOAP" type="checkbox"></div>
-      <div class="row"><label for="sectionizeStrokeNote">Sectionize into a Stroke note (Presentation, Vitals & Exam, Imaging, Treatment, Plan)</label><input id="sectionizeStrokeNote" type="checkbox"></div>
-      <div class="row"><label for="redactPHI">Redact simple PHI (name, phone, MRN patterns)</label><input id="redactPHI" type="checkbox"></div>
+      <div class="row"><label for="expandAbbrev">Expand common abbreviations</label><input id="expandAbbrev" type="checkbox"></div>
+      <div class="row"><label for="sectionizeSOAP">Sectionize into SOAP</label><input id="sectionizeSOAP" type="checkbox"></div>
+      <div class="row"><label for="sectionizeStrokeNote">Sectionize into a Stroke note</label><input id="sectionizeStrokeNote" type="checkbox"></div>
+      <div class="row"><label for="redactPHI">Redact simple PHI</label><input id="redactPHI" type="checkbox"></div>
     </article>
-<article class="group">
-  <h3>Rule Packs</h3>
-  <p class="muted">Enable one or more packs. The Reformat action will apply them in the order listed below.</p>
-  <div id="packs"></div>
-</article>
+
+    <article class="group">
+      <h3>Rule Packs</h3>
+      <p class="muted">Enable one or more packs. The Reformat action will apply them in order.</p>
+      <div id="packs"></div>
+    </article>
+
     <button id="reset" class="copy-btn">Reset to defaults</button>
     <span id="saved">Saved</span>
   </main>
 
-  <script type="module" src="js/rules.js"></script>
+  <script type="module" src="./js/rules.js"></script>
 </body>
 </html>
