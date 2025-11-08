@@ -2,7 +2,7 @@
 // Navigation-aware SW so /rules.html and /calculators.html load correctly.
 // Also pre-caches key same-origin assets. Skips cross-origin (Whisper/CDNs).
 
-const CACHE = 'app-cache-v20';
+const CACHE = 'app-cache-v21';
 
 const OFFLINE_URLS = [
   '/', '/index.html',
