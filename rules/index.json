@@ -1,4 +1,3 @@
-[
   {
     "id": "general-soap",
     "label": "General SOAP",
@@ -13,4 +12,11 @@
     "tags": ["neurology", "stroke", "history", "exam", "imaging", "plan", "sectionize"],
     "path": "neurology-stroke.json"
   }
-]
+{
+  "id": "nihss-parser",
+  "label": "NIHSS Parser (Neurology — Exam)",
+  "description": "Parses voice/ASR NIHSS into structured scores + sleek text.",
+  "tags": ["neurology","exam","stroke","NIHSS","voice-transcript"],
+  "kind": "parser",
+  "module": "parsers/nihss.js"
+}
