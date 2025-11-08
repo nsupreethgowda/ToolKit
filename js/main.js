@@ -1,4 +1,6 @@
 import { registerSW, attachForceReload } from './pwa.js';
+registerSW('./sw.js?v=20');  // ⬅️ bump this when SW changes
+attachForceReload();
 import { initMenu } from './menu.js';
 // OK:
 import {  setStatus, showSpinner, hideSpinner,  appendTranscript, getTranscriptPlainText, timer} from './ui.js';
